@@ -90,6 +90,9 @@ public enum MediaOverlayStyle: Int {
     /// Called when reader did closed.
     @available(*, deprecated, message: "Use 'folioReaderDidClose(_ folioReader: FolioReader)' instead.")
     @objc optional func folioReaderDidClosed()
+    
+    // by adfan
+    @objc optional func folioReaderDidSaveState(cur:Double, total:Double)
 }
 
 /// Main Library class with some useful constants and methods
@@ -350,6 +353,32 @@ extension FolioReader {
             ] as [String : Any]
 
         self.savedPositionForCurrentBook = position
+        
+        
+        
+        // by adfan
+        let total:Double = Double(self.readerCenter?.totalPages ?? 0)
+        var cur:Double = Double(self.readerCenter?.currentPageNumber ?? 0)
+        
+        let scrollDirection = self.readerContainer?.readerConfig.scrollDirection;
+        var dt:Double = 0
+        if scrollDirection == .vertical || scrollDirection == .defaultVertical {
+            dt = webView.scrollView.contentOffset.y / (webView.scrollView.contentSize.height - webView.scrollView.bounds.height)
+        } else {
+            dt = webView.scrollView.contentOffset.x / (webView.scrollView.contentSize.width - webView.scrollView.bounds.width)
+        }
+        
+        if dt < 0 {
+            dt = 0
+        } else if dt > 1 {
+            dt = 1
+        }
+        
+        cur += dt
+        
+//        print("folioReaderDidSaveState: \(self.delegate) \(cur), \(total)")
+        
+        self.delegate?.folioReaderDidSaveState?(cur: cur, total: total)
     }
 
     /// Closes and save the reader current instance.
