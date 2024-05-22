@@ -11,9 +11,17 @@ import WebKit
 class FolioReaderScript: WKUserScript {
     
     init(source: String) {
-        super.init(source: source,
-                   injectionTime: .atDocumentEnd,
-                   forMainFrameOnly: true)
+        //        super.init(source: source,
+        //                   injectionTime: .atDocumentEnd,
+        //                   forMainFrameOnly: true)
+        if #available(iOS 14.0, *) {
+            super.init(source: source, injectionTime: .atDocumentEnd, forMainFrameOnly: true, in: .defaultClient)
+        } else {
+            // Fallback on earlier versions
+            super.init(source: source,
+                       injectionTime: .atDocumentEnd,
+                       forMainFrameOnly: true)
+        }
     }
     
     static let bridgeJS: FolioReaderScript = {
@@ -52,8 +60,8 @@ extension WKUserScript {
         guard let controller = webView?.configuration.userContentController else { return }
         let alreadyAdded = controller.userScripts.contains { [unowned self] in
             return $0.source == self.source &&
-                $0.injectionTime == self.injectionTime &&
-                $0.isForMainFrameOnly == self.isForMainFrameOnly
+            $0.injectionTime == self.injectionTime &&
+            $0.isForMainFrameOnly == self.isForMainFrameOnly
         }
         if alreadyAdded { return }
         controller.addUserScript(self)
